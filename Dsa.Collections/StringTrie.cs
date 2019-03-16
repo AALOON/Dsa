@@ -5,6 +5,9 @@ using System.Text;
 
 namespace Dsa.Collections
 {
+    /// <summary>
+    /// Prefix tree (Trie)
+    /// </summary>
     public class StringTrie : ICollection<string>
     {
         private class Node : IEnumerable<Node>
@@ -47,9 +50,9 @@ namespace Dsa.Collections
                 set => _childs[key] = value;
             }
 
-            public bool Remove(char key)
+            public void Remove(char key)
             {
-                return _childs.Remove(key);
+                _childs.Remove(key);
             }
 
             public static Node GetRoot(IEqualityComparer<char> comparer)
@@ -72,9 +75,9 @@ namespace Dsa.Collections
                 var sb = new StringBuilder();
                 var current = this;
 
-                while (current != null)
+                while (current.Parent != null)
                 {
-                    sb.Append(current.Value);
+                    sb.Insert(0, current.Value);
                     current = current.Parent;
                 }
 
@@ -130,8 +133,12 @@ namespace Dsa.Collections
         {
             var current = _root;
             foreach (var item in sequence)
+            {
                 if (!current.Contains(item))
                     return false;
+                current = current[item];
+            }
+                
             return current.IsSequenceEnd;
         }
 
@@ -159,11 +166,14 @@ namespace Dsa.Collections
                 return false;
 
             node.IsSequenceEnd = false;
+            Count--;
+
             var current = node;
             while (current != null && !current.Any() && !current.IsSequenceEnd)
             {
                 current.Parent?.Remove(current.Value);
                 current = current.Parent;
+                
             }
             return true;
         }
@@ -176,8 +186,11 @@ namespace Dsa.Collections
         {
             var current = _root;
             foreach (var item in sequence)
+            {
                 if (!current.Contains(item))
                     return null;
+                current = current[item];
+            }
             if (current.IsSequenceEnd)
                 return current;
             return null;

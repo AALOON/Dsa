@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 namespace Dsa.Collections
 {
+    /// <summary>
+    /// Stack implementation.
+    /// </summary>
+    /// <typeparam name="TElement">Type of the stored element</typeparam>
     public class Stack<TElement> : IStack<TElement>, IEnumerable<TElement>
     {
         private readonly SingleLinkedList<TElement> _linkedList;

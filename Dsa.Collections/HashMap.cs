@@ -222,7 +222,7 @@ namespace Dsa.Collections
                 foreach (var pair in backet)
                     if (_comparer.Equals(pair.Key, newPair.Key))
                         throw new ArgumentException(
-                            $"Dublicate key. The key: [{newPair.Key} is already exists]", nameof(newPair.Key));
+                            $"Duplicate key. The key: [{newPair.Key} is already exists]", nameof(newPair.Key));
 
             backet.Add(newPair);
             Count++;

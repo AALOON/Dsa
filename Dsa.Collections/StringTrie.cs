@@ -6,7 +6,7 @@ using System.Text;
 namespace Dsa.Collections
 {
     /// <summary>
-    /// Prefix tree (Trie)
+    /// Prefix string tree (Trie)
     /// </summary>
     public class StringTrie : ICollection<string>
     {
@@ -195,7 +195,6 @@ namespace Dsa.Collections
                 return current;
             return null;
         }
-
 
         private IEnumerator<string> GetEnumeratorInternal(Node current)
         {

@@ -4,9 +4,14 @@ using System.Collections.Generic;
 
 namespace Dsa.Collections
 {
+    /// <summary>
+    /// Prefix tree (Trie)
+    /// </summary>
     public class Trie<TSequence, TChar> : ICollection<TSequence> where TSequence : IEnumerable<TChar>
     {
-        private class Node : IEnumerable<Node>
+        private readonly Func<IEnumerable<TChar>, TSequence> _sequenceFactory;
+
+        private class Node : IEnumerable<Node>, IEnumerable<TChar>
         {
             private const int ChildsCapacity = 1;
             private readonly IDictionary<TChar, Node> _childs;
@@ -46,14 +51,29 @@ namespace Dsa.Collections
                 set => _childs[key] = value;
             }
 
-            public bool Remove(TChar key)
+            public void Remove(TChar key)
             {
-                return _childs.Remove(key);
+                _childs.Remove(key);
             }
 
             public static Node GetRoot(IEqualityComparer<TChar> comparer)
             {
                 return new Node(default(TChar), comparer);
+            }
+
+            IEnumerator<TChar> IEnumerable<TChar>.GetEnumerator()
+            {
+                var current = this;
+
+                var stak = new Stack<TChar>();
+
+                while (current.Parent != null)
+                {
+                    stak.Push(current.Value);
+                    current = current.Parent;
+                }
+
+                return stak.GetEnumerator();
             }
 
             public IEnumerator<Node> GetEnumerator()
@@ -71,16 +91,23 @@ namespace Dsa.Collections
 
         private Node _root;
 
-        public Trie()
+        public Trie(Func<IEnumerable<TChar>, TSequence> sequenceFactory)
         {
+            _sequenceFactory = sequenceFactory;
             _comparer = EqualityComparer<TChar>.Default;
             Clear();
         }
 
+        public Trie(Func<IEnumerable<TChar>, TSequence> sequenceFactory, IEqualityComparer<TChar> comparer)
+        {
+            _sequenceFactory = sequenceFactory;
+            _comparer = comparer;
+            Clear();
+        }
 
         public IEnumerator<TSequence> GetEnumerator()
         {
-            throw new NotImplementedException();
+            return GetEnumeratorInternal(_root);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -115,14 +142,30 @@ namespace Dsa.Collections
         {
             var current = _root;
             foreach (var item in sequence)
+            {
                 if (!current.Contains(item))
                     return false;
+                current = current[item];
+            }
+
             return current.IsSequenceEnd;
         }
 
         public void CopyTo(TSequence[] array, int arrayIndex)
         {
-            throw new NotImplementedException();
+            if (array == null)
+                throw new ArgumentNullException(nameof(array));
+            if (arrayIndex < 0 || arrayIndex >= array.Length)
+                throw new ArgumentOutOfRangeException(nameof(arrayIndex),
+                    $"Wrong index [{arrayIndex}] need to be [{0}, {array.Length - 1}]!");
+            if (array.Length - arrayIndex < Count)
+                throw new ArgumentException("Wrong values of array and/or arrayIndex");
+
+            foreach (var str in this)
+            {
+                array[arrayIndex] = str;
+                arrayIndex++;
+            }
         }
 
         public bool Remove(TSequence item)
@@ -132,6 +175,8 @@ namespace Dsa.Collections
                 return false;
 
             node.IsSequenceEnd = false;
+            Count--;
+
             var current = node;
             while (current != null && !current.Any() && !current.IsSequenceEnd)
             {
@@ -149,11 +194,28 @@ namespace Dsa.Collections
         {
             var current = _root;
             foreach (var item in sequence)
+            {
                 if (!current.Contains(item))
                     return null;
+                current = current[item];
+            }
+
             if (current.IsSequenceEnd)
                 return current;
             return null;
+        }
+
+        private IEnumerator<TSequence> GetEnumeratorInternal(Node current)
+        {
+            foreach (var node in current)
+            {
+                if (node.IsSequenceEnd)
+                    yield return _sequenceFactory(node);
+
+                using (var nodeEnumerator = GetEnumeratorInternal(node))
+                    if (nodeEnumerator.MoveNext())
+                        yield return nodeEnumerator.Current;
+            }
         }
     }
 }

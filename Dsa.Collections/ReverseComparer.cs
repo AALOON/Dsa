@@ -2,21 +2,25 @@
 
 namespace Dsa.Collections
 {
-    public class ReverseComparer<T> : IComparer<T>
+    /// <summary>
+    /// Allows to revert the standard comparer
+    /// </summary>
+    /// <typeparam name="TElement">Type of compared element</typeparam>
+    public class ReverseComparer<TElement> : IComparer<TElement>
     {
-        private readonly IComparer<T> _baseComaprer;
+        private readonly IComparer<TElement> _baseComaprer;
 
         private ReverseComparer()
-            :this(Comparer<T>.Default)
+            :this(Comparer<TElement>.Default)
         {
         }
 
-        private ReverseComparer(IComparer<T> baseComaprer)
+        private ReverseComparer(IComparer<TElement> baseComaprer)
         {
             _baseComaprer = baseComaprer;
         }
 
-        public int Compare(T x, T y)
+        public int Compare(TElement x, TElement y)
         {
             return _baseComaprer.Compare(y, x);
         }
@@ -24,6 +28,6 @@ namespace Dsa.Collections
         /// <summary>
         /// Returns a default reverser sort order comparer for the type specified by the generic argument.
         /// </summary>
-        public static ReverseComparer<T> Default => new ReverseComparer<T>();
+        public static ReverseComparer<TElement> Default => new ReverseComparer<TElement>();
     }
 }
